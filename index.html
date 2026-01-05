@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Countdown</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      --font: "Montserrat", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+
+      /* Card colors (igual vibe da referência) */
+      --c-days:   #ef4444;  /* red */
+      --c-hours:  #f3f4f6;  /* light */
+      --c-mins:   #3b82f6;  /* blue */
+      --c-secs:   #f59e0b;  /* amber */
+
+      --bg: #f5f5f5;
+      --text-dark: #0f172a;
+      --text-light: #ffffff;
+
+      --radius: 14px;
+      --gap: 10px;
+      --shadow: 0 10px 30px rgba(0,0,0,.12);
+      --card-shadow: 0 10px 18px rgba(0,0,0,.08);
+    }
+
+    *{ box-sizing: border-box; }
+    html, body { height: 100%; }
+    body{
+      margin:0;
+      font-family: var(--font);
+      background: radial-gradient(1200px 500px at 50% 30%, #ffffff 0%, var(--bg) 65%);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding: 22px;
+    }
+
+    .wrap{
+      background: rgba(255,255,255,.85);
+      border: 1px solid rgba(0,0,0,.06);
+      box-shadow: var(--shadow);
+      border-radius: calc(var(--radius) + 8px);
+      padding: 18px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .countdown{
+      display:flex;
+      gap: var(--gap);
+      align-items: stretch;
+    }
+
+    .card{
+      width: 130px;
+      min-height: 96px;
+      border-radius: var(--radius);
+      box-shadow: var(--card-shadow);
+      display:flex;
+      flex-direction: column;
+      align-items:center;
+      justify-content:center;
+      padding: 14px 10px;
+      position: relative;
+      overflow:hidden;
+    }
+
+    .num{
+      font-size: 34px;
+      font-weight: 800;
+      line-height: 1;
+      letter-spacing: -0.02em;
+      margin-bottom: 6px;
+    }
+
+    .label{
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      opacity: .9;
+    }
+
+    .days { background: var(--c-days); color: var(--text-light); }
+    .hours{ background: var(--c-hours); color: var(--text-dark); }
+    .mins { background: var(--c-mins); color: var(--text-light); }
+    .secs { background: var(--c-secs); color: var(--text-dark); }
+
+    /* “barrinha” sutil no fundo pra dar profundidade */
+    .card::before{
+      content:"";
+      position:absolute;
+      inset: -40% -20%;
+      background: linear-gradient(120deg, rgba(255,255,255,.22), rgba(255,255,255,0));
+      transform: rotate(12deg);
+      pointer-events:none;
+    }
+
+    /* Responsivo pro Notion (iframe pequeno) */
+    @media (max-width: 620px){
+      .wrap{ padding: 14px; }
+      .card{ width: 92px; min-height: 86px; }
+      .num{ font-size: 26px; }
+      .label{ font-size: 10px; letter-spacing: 0.14em; }
+      .countdown{ gap: 8px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="countdown" aria-label="Countdown timer">
+      <div class="card days">
+        <div class="num" id="days">—</div>
+        <div class="label">Days</div>
+      </div>
+
+      <div class="card hours">
+        <div class="num" id="hours">—</div>
+        <div class="label">Hours</div>
+      </div>
+
+      <div class="card mins">
+        <div class="num" id="mins">—</div>
+        <div class="label">Minutes</div>
+      </div>
+
+      <div class="card secs">
+        <div class="num" id="secs">—</div>
+        <div class="label">Seconds</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /**
+     * Target fixo:
+     * Você disse: hoje 05/01/2026 14:20 + 182 dias = 06/07/2026 14:20
+     * Usei offset -03:00 pra bater com Brasil.
+     */
+    const TARGET_ISO = "2026-07-06T14:20:00-03:00";
+    const target = new Date(TARGET_ISO);
+
+    const elDays  = document.getElementById("days");
+    const elHours = document.getElementById("hours");
+    const elMins  = document.getElementById("mins");
+    const elSecs  = document.getElementById("secs");
+
+    function pad2(n){ return String(n).padStart(2, "0"); }
+
+    function tick(){
+      const now = new Date();
+      let diff = target.getTime() - now.getTime();
+
+      if (diff <= 0){
+        elDays.textContent  = "0";
+        elHours.textContent = "00";
+        elMins.textContent  = "00";
+        elSecs.textContent  = "00";
+        document.title = "Countdown finished";
+        return;
+      }
+
+      const totalSeconds = Math.floor(diff / 1000);
+      const days = Math.floor(totalSeconds / 86400);
+      const hours = Math.floor((totalSeconds % 86400) / 3600);
+      const mins = Math.floor((totalSeconds % 3600) / 60);
+      const secs = totalSeconds % 60;
+
+      elDays.textContent  = String(days);
+      elHours.textContent = pad2(hours);
+      elMins.textContent  = pad2(mins);
+      elSecs.textContent  = pad2(secs);
+
+      document.title = `${days}d ${pad2(hours)}:${pad2(mins)}:${pad2(secs)}`;
+      requestAnimationFrame(() => {});
+    }
+
+    tick();
+    setInterval(tick, 250);
+  </script>
+</body>
+</html>
